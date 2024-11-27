@@ -1,10 +1,14 @@
 import { COORDINATES_MAP, PLAYERS, STEP_LENGTH } from './constants.js';
 
 const diceButtonElement = document.querySelector('#dice-btn');
+const resetButtonElement = document.querySelector('#reset-btn');
+const playerPiecesContainer = document.querySelector('.player-pieces');
+const activePlayerElement = document.querySelector('.active-player span');
+const playerBaseElements = document.querySelectorAll('.player-base');
 const playerPiecesElements = {
     P1: document.querySelectorAll('[player-id="P1"].player-piece'),
     P2: document.querySelectorAll('[player-id="P2"].player-piece'),
-}
+};
 
 export class UI {
     static listenDiceClick(callback) {
@@ -12,79 +16,58 @@ export class UI {
     }
 
     static listenResetClick(callback) {
-        document.querySelector('button#reset-btn').addEventListener('click', callback)
+        resetButtonElement.addEventListener('click', callback);
     }
 
     static listenPieceClick(callback) {
-        document.querySelector('.player-pieces').addEventListener('click', callback)
+        playerPiecesContainer.addEventListener('click', callback);
     }
 
-    /**
-     * 
-     * @param {string} player 
-     * @param {Number} piece 
-     * @param {Number} newPosition 
-     */
     static setPiecePosition(player, piece, newPosition) {
-        if(!playerPiecesElements[player] || !playerPiecesElements[player][piece]) {
-            console.error(`Player element of given player: ${player} and piece: ${piece} not found`)
+        const pieceElement = playerPiecesElements[player]?.[piece];
+        if (!pieceElement) {
+            console.error(`Piece not found: Player=${player}, Piece=${piece}`);
             return;
         }
 
         const [x, y] = COORDINATES_MAP[newPosition];
-
-        const pieceElement = playerPiecesElements[player][piece];
-        pieceElement.style.top = y * STEP_LENGTH + '%';
-        pieceElement.style.left = x * STEP_LENGTH + '%';
+        pieceElement.style.cssText = `top: ${y * STEP_LENGTH}%; left: ${x * STEP_LENGTH}%;`;
     }
 
     static setTurn(index) {
-        if(index < 0 || index >= PLAYERS.length) {
-            console.error('index out of bound!');
+        if (!PLAYERS[index]) {
+            console.error('Invalid turn index');
             return;
         }
-        
+
         const player = PLAYERS[index];
+        activePlayerElement.innerText = player;
 
-        // Display player ID
-        document.querySelector('.active-player span').innerText = player;
-
-        const activePlayerBase = document.querySelector('.player-base.highlight');
-        if(activePlayerBase) {
-            activePlayerBase.classList.remove('highlight');
-        }
-        // highlight
-        document.querySelector(`[player-id="${player}"].player-base`).classList.add('highlight')
+        // Update player highlight
+        playerBaseElements.forEach(base => base.classList.toggle('highlight', base.getAttribute('player-id') === player));
     }
 
     static enableDice() {
-        diceButtonElement.removeAttribute('disabled');
+        diceButtonElement.disabled = false;
     }
 
     static disableDice() {
-        diceButtonElement.setAttribute('disabled', '');
+        diceButtonElement.disabled = true;
     }
 
-    /**
-     * 
-     * @param {string} player 
-     * @param {Number[]} pieces 
-     */
     static highlightPieces(player, pieces) {
-        pieces.forEach(piece => {
-            const pieceElement = playerPiecesElements[player][piece];
-            pieceElement.classList.add('highlight');
-        })
+        pieces.forEach(piece => 
+            playerPiecesElements[player]?.[piece]?.classList.add('highlight')
+        );
     }
 
     static unhighlightPieces() {
-        document.querySelectorAll('.player-piece.highlight').forEach(ele => {
-            ele.classList.remove('highlight');
-        })
+        document.querySelectorAll('.player-piece.highlight').forEach(piece =>
+            piece.classList.remove('highlight')
+        );
     }
 
     static setDiceValue(value) {
         document.querySelector('.dice-value').innerText = value;
     }
 }
-
