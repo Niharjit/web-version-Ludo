@@ -159,4 +159,4 @@ export class Ludo {
         this.currentPositions[player][piece] = position;
         UI.setPiecePosition(player, piece, position);
     }
-}
+
